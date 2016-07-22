@@ -1,6 +1,4 @@
-package kundeDAO;
-
-import java.sql.SQLException;
+package dao_implementation;
 
 import dao_framework.DAO_Object;
 
@@ -11,11 +9,17 @@ public class Customer extends DAO_Object {
     //für Zugriff KundeDAO
     private CustomerDAO customerDAO = CustomerDAO.getInstance();
     
-    public Customer(Long customer_id, String name, int customer_group) throws SQLException{
+    public Customer(Long customer_id, String name, int customer_group) {
         super(customer_id);
         this.set_Name(name);
         this.set_CustomerGroup(customer_group);
-        customerDAO.create(this);
+        
+        try{
+        	customerDAO.create(this);
+        }
+        catch(Exception e){
+        	e.printStackTrace();
+        }
     }
 
     public Long get_CustomerId() {

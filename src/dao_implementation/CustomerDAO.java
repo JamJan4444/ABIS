@@ -1,14 +1,15 @@
-package kundeDAO;
-
-import java.util.*;
+package dao_implementation;
 
 import dao_framework.DAO;
 import dao_framework.DAO_Object;
-
 import java.sql.*;
+import java.util.Properties;
 
 public class CustomerDAO extends DAO {
     
+	String userName = "**********";
+	String password = "**********";
+	
     // CustomerDAO is a singleton
     private static CustomerDAO instance = new CustomerDAO();
 	public static CustomerDAO getInstance() {
@@ -19,17 +20,22 @@ public class CustomerDAO extends DAO {
     
     private CustomerDAO() {
         try {
-            Class.forName("org.apache.derby.jdbc.ClientDriver");
-            db = DriverManager.getConnection("jdbc:derby://localhost:1527/xdb");
+        	Class.forName("com.mysql.jdbc.Driver").newInstance();
+            Properties connectionProps = new Properties();
+            connectionProps.put("user", this.userName);
+            connectionProps.put("password", this.password);
+            db = DriverManager.getConnection("jdbc:mysql://localhost:3306/abis",connectionProps);
+            PreparedStatement truncateStatement = db.prepareStatement("TRUNCATE abis.Customer");
+            truncateStatement.execute();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    private final static String insertStatementString = "INSERT INTO KUNDEN VALUES(?, ?, ?)";
+    private final static String insertStatementString = "INSERT INTO Customer VALUES(?, ?, ?)";
 
 	@Override
-	protected void insert(DAO_Object o) throws SQLException {
+	protected void insert(DAO_Object o) {
 		Customer c = (Customer) o;
         PreparedStatement insertStatement = null;
         try {
@@ -44,7 +50,7 @@ public class CustomerDAO extends DAO {
         }
 	}
 
-    private final static String updateStatementString = "UPDATE KUNDEN SET NAME = ?, KDGRP = ? WHERE KDNR = ?";
+    private final static String updateStatementString = "UPDATE Customer SET Name = ?, CustomerId = ? WHERE CustomerGroup = ?";
 
     /** Methode zum Aktualisieren eines Kunden in der DB */
     public void update(Customer c) {
@@ -60,8 +66,7 @@ public class CustomerDAO extends DAO {
         }
     }
 
-    private final static String findStatementString = "SELECT KDNR, NAME, KDGRP FROM KUNDEN WHERE KDNR=?";
-    
+    private final static String findStatementString = "SELECT CustomerId, Name, CustomerGroup FROM Customer WHERE CustomerId=?";
 	@Override
 	protected DAO_Object load(long p_id) {
         Customer result = (Customer) registry.get(p_id);
@@ -69,8 +74,6 @@ public class CustomerDAO extends DAO {
         if (result != null) {
             return result;
         }
-
-        /* Der Kunde ist noch nicht im Speicher, laden aus der DB */
         PreparedStatement findStatement = null;
         rs = null;
         try {
@@ -85,16 +88,22 @@ public class CustomerDAO extends DAO {
         return result;
 	}
 	
-    protected Customer doLoad(ResultSet rs) throws SQLException {
-        Long id = new Long(rs.getLong(1));
-        Customer result = (Customer) registry.get(id);
-        if (result != null) {
-            return result;
-        }
-        String name = rs.getString(2);
-        int customer_group = rs.getInt(3);
-        result = new Customer(id, name, customer_group);
-        registry.put(id, result);
-        return result;
+    protected Customer doLoad(ResultSet rs) {
+    	try {
+	        Long id = new Long(rs.getLong(1));
+	        Customer result = (Customer) registry.get(id);
+	        if (result != null) {
+	            return result;
+	        }
+	        String name = rs.getString(2);
+	        int customer_group = rs.getInt(3);
+	        result = new Customer(id, name, customer_group);
+	        registry.put(id, result);
+	        return result;
+    	}
+    	catch (SQLException e) {
+    		e.printStackTrace();
+    	}
+    	return null;
     }
 }

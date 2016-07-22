@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 public abstract class DAO {
 	
-    private final static String deleteStatementString = "DELETE FROM KUNDEN WHERE ID = ?";
+    private final static String deleteStatementString = "DELETE FROM Customer WHERE CustomerId = ?";
 	
     protected HashMap<Long, Object> registry = new HashMap<Long, Object>();
     protected Connection db;
@@ -29,22 +29,23 @@ public abstract class DAO {
     	}
 	}
     
-	public DAO_Object read(long p_id) throws SQLException {
+	public DAO_Object read(long p_id) {
 		DAO_Object o = load(p_id);
 		return o;
 	}
 
-	public void delete(DAO_Object o) throws SQLException {
+	public void delete(DAO_Object o) {
 		long id = o.get_id();
 		if (registry.containsKey(id)) {
 			remove(o);
 			registry.remove(id);
 		} else {
-			throw new SQLException("Key "+ id + " has already been used!");
-    	}
+			//throw new SQLException("Key "+ id + " has already been used!");
+			System.out.println("Key" + id + " has already been used!");
+		}
 	}
 	
-	public void update(Object o) throws SQLException {
+	public void update(Object o) {
 		update(o);
 	}
 	
@@ -59,6 +60,6 @@ public abstract class DAO {
         }
 	}
 	
-	protected abstract void insert(DAO_Object o) throws SQLException;
+	protected abstract void insert(DAO_Object o);
 	protected abstract DAO_Object load(long p_id);
 }
